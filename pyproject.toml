@@ -1,0 +1,71 @@
+[project]
+name = "Home-iot-api"
+version= "0.1.0"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+
+[tool.mypy]
+files = "src/**/*.py"
+strict = true
+install_types = true
+check_untyped_defs = true
+ignore_missing_imports = true
+scripts_are_modules = true
+non_interactive = true
+disallow_subclassing_any = false
+plugins = [
+    "pydantic.mypy"
+]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+include = [
+    "pyproject.toml",
+    "src/**/*.py",
+    "tests/**/*.py"
+]
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I001",
+    # pydocs
+    "D"
+]
+ignore = [
+    "E203",
+    "D104",
+    "D107",
+    "D100",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"**/{tests}/*" = ["E402", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

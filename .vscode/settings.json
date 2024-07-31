@@ -1,0 +1,17 @@
+{
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,   
+        "editor.formatOnPaste": true,
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "cSpell.words": [
+        "ASGI"
+    ],
+    "ruff.configurationPreference": "filesystemFirst",
+    "ruff.enable": true,
+} 

@@ -12,6 +12,17 @@
     "cSpell.words": [
         "ASGI"
     ],
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
     "ruff.configurationPreference": "filesystemFirst",
     "ruff.enable": true,
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
 } 

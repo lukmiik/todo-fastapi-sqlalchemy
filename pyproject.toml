@@ -1,9 +1,12 @@
 [project]
-name = "Home-iot-api"
+name = "todo-fastapi-sqlalchemy"
 version= "0.1.0"
 
 [tool.pytest.ini_options]
 testpaths = "tests"
+filterwarnings = [
+    "ignore:The 'app' shortcut is now deprecated:DeprecationWarning",
+]
 
 [tool.mypy]
 files = "src/**/*.py"
@@ -14,9 +17,7 @@ ignore_missing_imports = true
 scripts_are_modules = true
 non_interactive = true
 disallow_subclassing_any = false
-plugins = [
-    "pydantic.mypy"
-]
+plugins = "pydantic.mypy"
 
 [tool.ruff]
 line-length = 88

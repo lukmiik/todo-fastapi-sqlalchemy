@@ -9,9 +9,39 @@ repos:
         exclude_types: [ html, markdown, text ]
       - id: check-merge-conflict
       - id: detect-private-key
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.1
+    rev: v0.5.6
     hooks:
       - id: ruff
         args: [ --fix ]
       - id: ruff-format
+        verbose: true
+
+# https://jaredkhan.com/blog/mypy-pre-commit
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: "./hooks/run_mypy.sh"
+        language: system
+        # use your preferred Python version
+        # language_version: python3.12.3
+        # additional_dependencies: ["mypy==1.11.0", "pydantic>=2.8.2"]
+        # trigger for commits changing Python files
+        types: [python]
+        # use require_serial so that script
+        # is only called once per commit
+        require_serial: true
+        # print the number of files as a sanity-check
+        verbose: true
+
+  - repo: local
+    hooks:
+      - id: update-requirements
+        name: Update requirements.txt
+        entry: ./hooks/update_requirements.sh
+        language: script
+        stages: [commit]
+        require_serial: true
+        verbose: true

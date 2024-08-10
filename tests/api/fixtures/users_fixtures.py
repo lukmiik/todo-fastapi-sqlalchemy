@@ -1,5 +1,7 @@
 import pytest
 
+from src.db.models import Users
+
 
 @pytest.fixture
 def user_create_request() -> dict[str, str | bool]:
@@ -88,3 +90,22 @@ def user_change_password_wrong_password_request() -> dict[str, str]:
         "password": "test_wrong_password",
         "new_password": "new_test_password",
     }
+
+
+@pytest.fixture
+async def create_user_in_db(db_session):
+    user_data: dict[str, str | bool] = {
+        "first_name": "test_first_name",
+        "last_name": "test_last_name",
+        "username": "test_username",
+        "email": "test@email.com",
+        "password": "test_password",
+        "is_active": True,
+        "role": "USER",
+    }
+    new_user = Users(**user_data)
+    db_session.add(new_user)
+    db_session.commit()
+    yield new_user
+    db_session.delete(new_user)
+    db_session.commit()

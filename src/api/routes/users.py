@@ -1,36 +1,13 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from src.api.schemas.users import UserCreateRequest, UserCreateResponse
 from src.db.dependency import DbDep
-from src.db.models import RoleEnum, Users
+from src.db.models import Users
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-class UserCreateRequest(BaseModel):
-    """Model for validating user create request."""
-
-    first_name: str
-    last_name: str | None = None
-    username: str
-    email: EmailStr
-    password: str
-    is_active: bool | None = None
-    role: RoleEnum | None = RoleEnum.USER
-
-
-class UserCreateResponse(BaseModel):
-    """Model for user create response."""
-
-    id: int
-    first_name: str
-    last_name: str | None
-    username: str
-    email: EmailStr
-    is_active: bool
-    role: RoleEnum
 
 
 @router.post(

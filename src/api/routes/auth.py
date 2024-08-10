@@ -123,6 +123,25 @@ async def get_current_user(
     return user
 
 
+async def get_current_active_user(
+    current_user: Annotated[Users, Depends(get_current_user)],
+) -> Users:
+    """Checks if current user is active.
+
+    Args:
+        current_user (Annotated[Users, Depends): current user
+
+    Raises:
+        HTTPException: user not active
+
+    Returns:
+        Users: current user
+    """
+    if current_user.is_active:
+        return current_user
+    raise HTTPException(status_code=400, detail="Inactive User")
+
+
 @router.post("/token/", status_code=status.HTTP_200_OK)
 async def login(
     db: DbDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]

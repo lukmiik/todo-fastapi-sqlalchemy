@@ -1,9 +1,17 @@
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from src.api.schemas.users import UserCreateRequest, UserCreateResponse
+from src.api.permissions import IsAdminDep
+from src.api.routes.auth import get_current_active_user
+from src.api.schemas.users import (
+    ChangePasswordRequest,
+    UserCreateRequest,
+    UserCreateResponse,
+    UserMeOut,
+)
 from src.db.dependency import DbDep
 from src.db.models import Users
 
@@ -58,14 +66,6 @@ async def create_user(db: DbDep, user_request: UserCreateRequest) -> UserCreateR
     return user_response
 
 
-class ChangePasswordRequest(BaseModel):
-    """Model for validating change password request."""
-
-    username: str
-    password: str
-    new_password: str
-
-
 @router.post("/change_password/")
 async def change_password(db: DbDep, request: ChangePasswordRequest) -> JSONResponse:
     """Allows user to change password.
@@ -94,6 +94,28 @@ async def change_password(db: DbDep, request: ChangePasswordRequest) -> JSONResp
 
 
 @router.get("/", response_model=list[UserCreateResponse])
-async def get_all_users(db: DbDep) -> list[Users]:
+async def get_all_users(db: DbDep, current_user: IsAdminDep) -> list[Users]:
     """Temporary endpoint for development. Move it to admin when implemented."""
     return db.query(Users).all()
+
+
+@router.get("/me/")
+async def me(
+    current_user: Annotated[Users, Depends(get_current_active_user)],
+) -> UserMeOut:
+    """Endpoint for retrieving data about current user.
+
+    Args:
+        current_user (Annotated[Users, Depends): current_user
+
+    Returns:
+        UserMeOut: user info
+    """
+    user = UserMeOut(
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        username=current_user.username,
+        email=current_user.email,
+        role=current_user.role,
+    )
+    return user

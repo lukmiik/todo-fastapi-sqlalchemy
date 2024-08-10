@@ -25,3 +25,21 @@ class UserCreateResponse(BaseModel):
     email: EmailStr
     is_active: bool
     role: RoleEnum
+
+
+class ChangePasswordRequest(BaseModel):
+    """Model for validating change password request."""
+
+    username: str
+    password: str
+    new_password: str
+
+
+class UserMeOut(BaseModel):
+    """Model for user data in me response."""
+
+    first_name: str
+    last_name: str | None
+    username: str
+    email: EmailStr
+    role: RoleEnum

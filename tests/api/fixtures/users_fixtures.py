@@ -93,7 +93,7 @@ def user_change_password_wrong_password_request() -> dict[str, str]:
 
 
 @pytest.fixture
-async def create_user_in_db(db_session):
+async def create_user_in_db(db_session) -> Users:
     user_data: dict[str, str | bool] = {
         "first_name": "test_first_name",
         "last_name": "test_last_name",
@@ -106,6 +106,4 @@ async def create_user_in_db(db_session):
     new_user = Users(**user_data)
     db_session.add(new_user)
     db_session.commit()
-    yield new_user
-    db_session.delete(new_user)
-    db_session.commit()
+    return new_user

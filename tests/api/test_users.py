@@ -6,7 +6,7 @@ from src.db.models import Users
 
 pytest_plugins: str = "tests.api.fixtures.users_fixtures"
 
-# make all test mark with `anyio`
+# make all tests mark with `anyio`
 pytestmark = pytest.mark.anyio
 
 

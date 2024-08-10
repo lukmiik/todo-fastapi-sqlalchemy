@@ -1,7 +1,7 @@
 import enum
 
 from cryptography.fernet import Fernet
-from sqlalchemy import Dialect, LargeBinary, String, TypeDecorator
+from sqlalchemy import Dialect, ForeignKey, LargeBinary, String, TypeDecorator
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.db.base import Base
@@ -63,3 +63,15 @@ class Users(Base):
     password: Mapped[str] = mapped_column(EncryptedType, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=False, nullable=False)
     role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.USER, nullable=False)
+
+
+class Todo(Base):
+    """Todo note model."""
+
+    __tablename__: str = "todo"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(40), nullable=False)
+    description: Mapped[str] = mapped_column(nullable=True)
+    finished: Mapped[bool] = mapped_column(default=False, nullable=False)
+    user: Mapped[int] = mapped_column(ForeignKey("users.id"))

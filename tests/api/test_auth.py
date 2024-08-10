@@ -17,9 +17,12 @@ from src.api.routes.auth import (
 )
 from src.db.models import Users
 from src.settings import Settings
+from tests.api.utils.tokens import create_access_token as create_access_token_for_tests
+from tests.api.utils.tokens import (
+    create_refresh_token as create_refresh_token_for_tests,
+)
 
 pytest_plugins: list[str] = [
-    "tests.api.fixtures.auth_fixtures",
     "tests.api.fixtures.users_fixtures",
 ]
 
@@ -204,8 +207,10 @@ async def test_get_current_user_invalid_access_token(
 
 
 @mock.patch("src.api.routes.auth.datetime")
+@mock.patch("tests.api.utils.tokens.datetime")
 async def test_login(
     mock_datetime_now,
+    mock_datetime_now_utils,
     async_test_client: AsyncClient,
     create_user_in_db: Users,
 ) -> None:
@@ -216,25 +221,10 @@ async def test_login(
     test_datetime_now = datetime(year=9999, month=10, day=5)
     test_datetime_now = test_datetime_now.replace(tzinfo=timezone.utc)
     mock_datetime_now.now.return_value = test_datetime_now
+    mock_datetime_now_utils.now.return_value = test_datetime_now
 
-    expected_access_token = jwt.encode(
-        {
-            "sub": username,
-            "exp": test_datetime_now
-            + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        },
-        key=settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM,
-    )
-    expected_refresh_token = jwt.encode(
-        {
-            "sub": username,
-            "exp": test_datetime_now
-            + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES),
-        },
-        key=settings.REFRESH_SECRET_KEY,
-        algorithm=settings.ALGORITHM,
-    )
+    expected_access_token = create_access_token_for_tests(username)
+    expected_refresh_token = create_refresh_token_for_tests(username)
 
     response = await async_test_client.post("/auth/token/", data=form_data)
 
@@ -269,39 +259,26 @@ async def test_login_invalid_user_data(
 
 
 @mock.patch("src.api.routes.auth.datetime")
+@mock.patch("tests.api.utils.tokens.datetime")
 async def test_refresh(
-    mock_datetime_now, async_test_client: AsyncClient, create_user_in_db: Users
+    mock_datetime_now,
+    mock_datetime_now_utils,
+    async_test_client: AsyncClient,
+    create_user_in_db: Users,
 ) -> None:
     username = create_user_in_db.username
 
     test_datetime_now = datetime(year=9999, month=10, day=5)
     test_datetime_now = test_datetime_now.replace(tzinfo=timezone.utc)
     mock_datetime_now.now.return_value = test_datetime_now
+    mock_datetime_now_utils.now.return_value = test_datetime_now
 
-    refresh_token = jwt.encode(
-        {"sub": username, "exp": test_datetime_now - timedelta(weeks=1)},
-        key=settings.REFRESH_SECRET_KEY,
-        algorithm=settings.ALGORITHM,
+    refresh_token = create_refresh_token_for_tests(
+        username, test_datetime_now - timedelta(weeks=1)
     )
 
-    expected_access_token = jwt.encode(
-        {
-            "sub": username,
-            "exp": test_datetime_now
-            + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        },
-        key=settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM,
-    )
-    expected_refresh_token = jwt.encode(
-        {
-            "sub": username,
-            "exp": test_datetime_now
-            + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES),
-        },
-        key=settings.REFRESH_SECRET_KEY,
-        algorithm=settings.ALGORITHM,
-    )
+    expected_access_token = create_access_token_for_tests(username)
+    expected_refresh_token = create_refresh_token_for_tests(username)
 
     response = await async_test_client.post(
         "/auth/token/refresh/", json={"refresh_token": refresh_token}
@@ -321,10 +298,8 @@ async def test_refresh_invalid_refresh_token(
     username = create_user_in_db.username
 
     refresh_token = (
-        jwt.encode(
-            {"sub": username, "exp": datetime.now(timezone.utc) + timedelta(days=1)},
-            key=settings.REFRESH_SECRET_KEY,
-            algorithm=settings.ALGORITHM,
+        create_refresh_token_for_tests(
+            username, datetime.now(timezone.utc) + timedelta(days=1)
         )
         + "invalid"
     )

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
-from src.api.routes import auth, health, users
+from src.api.exceptions import add_custom_exception
+from src.api.routes import auth, health, todos, users
 from src.db.base import Base
 from src.db.database import engine
 
@@ -11,3 +12,6 @@ Base.metadata.create_all(engine)
 app.include_router(health.router)
 app.include_router(users.router)
 app.include_router(auth.router)
+app.include_router(todos.router)
+
+add_custom_exception(app)

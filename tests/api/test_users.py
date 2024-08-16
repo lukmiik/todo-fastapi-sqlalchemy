@@ -98,7 +98,7 @@ async def test_user_create_create_same_user_twice(
 
     response = await async_test_client.post("/users/create/", json=user_create_request)
     assert response.status_code == 400
-    assert response.json() == {"detail": "Failed to create user. Integrity error."}
+    assert response.json() == {"detail": "db integrity error."}
 
 
 async def test_user_change_password(

@@ -64,6 +64,11 @@ class Users(Base):
     is_active: Mapped[bool] = mapped_column(default=False, nullable=False)
     role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.USER, nullable=False)
 
+    @property
+    def is_admin(self) -> bool:
+        """Check if the user is an admin."""
+        return self.role == RoleEnum.ADMIN
+
 
 class Todo(Base):
     """Todo note model."""
@@ -72,6 +77,6 @@ class Todo(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(40), nullable=False)
-    description: Mapped[str] = mapped_column(nullable=True)
+    description: Mapped[str | None] = mapped_column(nullable=True)
     finished: Mapped[bool] = mapped_column(default=False, nullable=False)
     user: Mapped[int] = mapped_column(ForeignKey("users.id"))

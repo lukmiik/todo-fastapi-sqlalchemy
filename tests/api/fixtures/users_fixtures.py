@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.orm import Session
 
 from src.db.models import Users
 
@@ -93,7 +94,7 @@ def user_change_password_wrong_password_request() -> dict[str, str]:
 
 
 @pytest.fixture
-async def create_user_in_db(db_session) -> Users:
+async def create_user_in_db(db_session: Session) -> Users:
     user_data: dict[str, str | bool] = {
         "first_name": "test_first_name",
         "last_name": "test_last_name",

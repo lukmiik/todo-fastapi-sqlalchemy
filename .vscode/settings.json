@@ -5,7 +5,7 @@
             "source.organizeImports": "explicit"
         },
         "editor.formatOnSave": true,
-        "editor.formatOnType": true,   
+        "editor.formatOnType": true,
         "editor.formatOnPaste": true,
         "editor.defaultFormatter": "charliermarsh.ruff"
     },
@@ -25,4 +25,4 @@
     "python.analysis.extraPaths": [
         "${workspaceFolder}"
     ],
-} 
+}

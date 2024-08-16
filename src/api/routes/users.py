@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from src.api.permissions import IsAdminDep
 from src.api.routes.auth import get_current_active_user
@@ -37,21 +36,8 @@ async def create_user(db: DbDep, user_request: UserCreateRequest) -> UserCreateR
     """
     user = Users(**user_request.model_dump())
 
-    try:
-        db.add(user)
-        db.commit()
-    except IntegrityError as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=400,
-            detail="Failed to create user. Integrity error.",
-        ) from e
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail="Database error occurred.",
-        ) from e
+    db.add(user)
+    db.commit()
 
     user_response = UserCreateResponse(
         id=user.id,
@@ -62,7 +48,6 @@ async def create_user(db: DbDep, user_request: UserCreateRequest) -> UserCreateR
         is_active=user.is_active,
         role=user.role,
     )
-
     return user_response
 
 

@@ -1,10 +1,8 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from src.api.permissions import IsAdminDep
-from src.api.routes.auth import get_current_active_user
+from src.api.routes.auth import CurrentActiveUserDep
 from src.api.schemas.users import (
     ChangePasswordRequest,
     UserCreateRequest,
@@ -86,12 +84,12 @@ async def get_all_users(db: DbDep, current_user: IsAdminDep) -> list[Users]:
 
 @router.get("/me/")
 async def me(
-    current_user: Annotated[Users, Depends(get_current_active_user)],
+    current_user: CurrentActiveUserDep,
 ) -> UserMeOut:
     """Endpoint for retrieving data about current user.
 
     Args:
-        current_user (Annotated[Users, Depends): current_user
+        current_user (CurrentActiveUserDep): current_user
 
     Returns:
         UserMeOut: user info

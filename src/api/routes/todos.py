@@ -1,45 +1,33 @@
-from typing import Annotated
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
 from starlette import status
 from starlette.responses import JSONResponse
 
-from src.api.routes.auth import get_current_active_user
+from src.api.routes.auth import CurrentActiveUserDep
+from src.api.schemas.todos import (
+    TodosAllFields,
+    TodosCreateIn,
+    TodosWithoutUser,
+    TodoUpdateIn,
+)
 from src.db.dependency import DbDep
-from src.db.models import Todo, Users
+from src.db.models import Todo
 
 router = APIRouter(prefix="/todos", tags=["todo"])
-
-
-class TodosCreateIn(BaseModel):
-    """Model for todos create request."""
-
-    title: str
-    description: str | None = None
-
-
-class TodosAllFields(BaseModel):
-    """Model for todos create response."""
-
-    id: int
-    title: str
-    description: str | None
-    finished: bool
-    user: int
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_todo(
     db: DbDep,
-    current_user: Annotated[Users, Depends(get_current_active_user)],
+    current_user: CurrentActiveUserDep,
     todo_in: TodosCreateIn,
 ) -> TodosAllFields:
     """Creates todo with for current_user.
 
     Args:
         db (DbDep): db dependency
-        current_user (Annotated[Users, Depends): current user
+        current_user (CurrentActiveUserDep): current user
         todo_in (TodosCreateIn): todo data
 
     Returns:
@@ -62,49 +50,35 @@ async def create_todo(
     return todo_response
 
 
-class TodosWithoutUser(BaseModel):
-    """Todos model without user."""
-
-    id: int
-    title: str
-    description: str | None
-    finished: bool
-
-
 # response model is enough to serialize the response you dont have to convert
 # in the code
 @router.get("/", response_model=list[TodosWithoutUser])
-async def get_todos(
-    db: DbDep, current_user: Annotated[Users, Depends(get_current_active_user)]
-) -> list[dict[str, int | str | bool | Users]]:
+async def get_todos(db: DbDep, current_user: CurrentActiveUserDep) -> Any:
     """Get all todos of a current_user.
 
     Args:
         db (DbDep): db dependency
-        current_user (Annotated[Users, Depends): current user
+        current_user (CurrentActiveUserDep): current user
 
     Returns:
-        list[Todo]: list of todos of current user
+        Any: list of todos of current user
     """
     todos = (
         db.query(Todo.id, Todo.title, Todo.description, Todo.finished, Todo.user)
         .filter(Todo.user == current_user.id)
         .all()
     )
-    todos_dict = [todo._asdict() for todo in todos]
 
-    return todos_dict
+    return todos
 
 
 @router.get("/{id}/", response_model=TodosWithoutUser)
-async def get_todo(
-    db: DbDep, current_user: Annotated[Users, Depends(get_current_active_user)], id: int
-) -> Todo:
+async def get_todo(db: DbDep, current_user: CurrentActiveUserDep, id: int) -> Todo:
     """Gets todo by id.
 
     Args:
         db (DbDep): db dependency
-        current_user (Annotated[Users, Depends): current user
+        current_user (CurrentActiveUserDep): current user
         id (int): id of the todo
 
     Raises:
@@ -125,21 +99,14 @@ async def get_todo(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized."
         )
+
     return todo
-
-
-class TodoUpdateIn(BaseModel):
-    """Model for updating todo."""
-
-    title: str
-    description: str | None
-    finished: bool
 
 
 @router.put("/{id}/", status_code=status.HTTP_200_OK, response_model=TodosWithoutUser)
 async def update_todo(
     db: DbDep,
-    current_user: Annotated[Users, Depends(get_current_active_user)],
+    current_user: CurrentActiveUserDep,
     id: int,
     todo_in: TodoUpdateIn,
 ) -> Todo:
@@ -147,7 +114,7 @@ async def update_todo(
 
     Args:
         db (DbDep): db dependency
-        current_user (Annotated[Users, Depends): current user
+        current_user (CurrentActiveUserDep): current user
         id (int): todo it to update
         todo_in (TodoUpdateIn): todo data to update
 
@@ -178,13 +145,13 @@ async def update_todo(
 
 @router.delete("/{id}/")
 async def delete_todo(
-    db: DbDep, current_user: Annotated[Users, Depends(get_current_active_user)], id: int
+    db: DbDep, current_user: CurrentActiveUserDep, id: int
 ) -> JSONResponse:
     """Deletes todo.
 
     Args:
         db (DbDep): db dependency
-        current_user (Annotated[Users, Depends): current user
+        current_user (CurrentActiveUserDep): current user
         id (int): id of a todo to delete
 
     Raises:

@@ -21,6 +21,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+AccessTokenDep = Annotated[str, Depends(oauth2_scheme)]
+LoginFormDep = Annotated[OAuth2PasswordRequestForm, Depends()]
+
 CREDENTIALS_EXCEPTION: HTTPException = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
@@ -90,14 +93,12 @@ def create_refresh_token(data: TokenDataIn) -> str:
     return encoded_jwt
 
 
-async def get_current_user(
-    db: DbDep, token: Annotated[str, Depends(oauth2_scheme)]
-) -> Users:
+async def get_current_user(db: DbDep, token: AccessTokenDep) -> Users:
     """Returns current user from jwt token.
 
     Args:
         db (DbDep): db session
-        token (Annotated[str, Depends): access token
+        token (AccessTokenDep): access token
 
     Raises:
         CREDENTIALS_EXCEPTION: invalid credentials
@@ -123,13 +124,16 @@ async def get_current_user(
     return user
 
 
+CurrentUserDep = Annotated[Users, Depends(get_current_user)]
+
+
 async def get_current_active_user(
-    current_user: Annotated[Users, Depends(get_current_user)],
+    current_user: CurrentUserDep,
 ) -> Users:
     """Checks if current user is active.
 
     Args:
-        current_user (Annotated[Users, Depends): current user
+        current_user (CurrentUserDep): current user
 
     Raises:
         HTTPException: user not active
@@ -142,15 +146,16 @@ async def get_current_active_user(
     raise HTTPException(status_code=400, detail="Inactive User")
 
 
+CurrentActiveUserDep = Annotated[Users, Depends(get_current_active_user)]
+
+
 @router.post("/token/", status_code=status.HTTP_200_OK)
-async def login(
-    db: DbDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
-) -> Token:
+async def login(db: DbDep, form_data: LoginFormDep) -> Token:
     """Checks if user with given username and password exists and returns access token.
 
     Args:
         db (DbDep): db session
-        form_data (Annotated[OAuth2PasswordRequestForm, Depends): given user data
+        form_data (LoginFormDep): given user data
 
     Returns:
         Token: access token and token type

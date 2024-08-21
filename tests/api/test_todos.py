@@ -59,7 +59,13 @@ async def test_get_todos(
     response = await client.get("/todos/")
 
     assert response.status_code == 200
-    assert response.json() == todos_to_create
+
+    content = response.json()
+    assert content["items"] == todos_to_create
+    assert content["total"] == 5
+    assert content["page"] == 1
+    assert content["size"] == 20
+    assert content["pages"] == 1
 
 
 async def test_get_todos_not_authenticated(

@@ -1,6 +1,10 @@
-from typing import Any
+from typing import Any, TypeVar
 
 from fastapi import APIRouter, HTTPException
+from fastapi_pagination import Page
+from fastapi_pagination.customization import CustomizedPage, UseParamsFields
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy import select
 from starlette import status
 from starlette.responses import JSONResponse
 
@@ -50,9 +54,14 @@ async def create_todo(
     return todo_response
 
 
+T = TypeVar("T")
+
+RegularPage = CustomizedPage[Page[T], UseParamsFields(size=20)]
+
+
 # response model is enough to serialize the response you dont have to convert
 # in the code
-@router.get("/", response_model=list[TodosWithoutUser])
+@router.get("/", response_model=RegularPage[TodosWithoutUser])
 async def get_todos(db: DbDep, current_user: CurrentActiveUserDep) -> Any:
     """Get all todos of a current_user.
 
@@ -63,13 +72,11 @@ async def get_todos(db: DbDep, current_user: CurrentActiveUserDep) -> Any:
     Returns:
         Any: list of todos of current user
     """
-    todos = (
-        db.query(Todo.id, Todo.title, Todo.description, Todo.finished, Todo.user)
-        .filter(Todo.user == current_user.id)
-        .all()
-    )
+    stmt = select(
+        Todo.id, Todo.title, Todo.description, Todo.finished, Todo.user
+    ).filter(Todo.user == current_user.id)
 
-    return todos
+    return paginate(db, stmt)
 
 
 @router.get("/{id}/", response_model=TodosWithoutUser)
